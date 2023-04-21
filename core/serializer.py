@@ -6,7 +6,7 @@ from .models import *
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ["username", "email", "password"]
+        fields = "__all__"
         extra_kwargs = {
             'password': {'write_only': True}
         }
@@ -121,5 +121,12 @@ class ColorSerializer(serializers.ModelSerializer):
 class UserRoleSerializer(serializers.ModelSerializer):
      class Meta:
         model = User_role
+        fields = "__all__"
+# ==================================================================
+
+# ========================= ROLE ==============================
+class RoleSerializer(serializers.ModelSerializer):
+     class Meta:
+        model = Role
         fields = "__all__"
 # ==================================================================
