@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.db.models import QuerySet
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -187,7 +187,6 @@ class SupplierView():
         serializer = SupplierSerializer(supplier, data=request.data)
         
         if serializer.is_valid():
-            supplier.update_date = datetime.datetime.now()
             serializer.save()
             return Response({"Message": "success", "Data": serializer.data})
         else: 
@@ -220,9 +219,14 @@ class CategoryView():
     # Hiển thị danh sách các danh mục 
     @api_view(['GET'])
     def list_category(request):
-        category = Category.objects.all()
-        serializer = CategorySerializer(category, many=True)
-        return Response(serializer.data)
+        queryset = Category.objects.all()
+        categorys = []
+
+        for category in queryset:
+            categorys.append({"id": category.id, "category_name": category.category_name, "create_date": category.create_date,
+                            "create_by": category.create_by.username, "update_date": category.update_date, "update_by": category.update_by.username})
+        
+        return Response(categorys)
     
     # Tìm kiếm danh mục
     @api_view(['GET'])
@@ -248,7 +252,6 @@ class CategoryView():
         serializer = CategorySerializer(category, data=request.data)
 
         if serializer.is_valid():
-            category.update_date = datetime.datetime.now()
             serializer.save()
             return Response({"Message": "success", "Data": serializer.data})
         else:
@@ -282,10 +285,14 @@ class BranchView():
     # Hiển thị danh sách các nhãn hiệu
     @api_view(['GET'])
     def list_branch(request):
-        branch_list = Branch.objects.all()
-        serializer = BranchSerializer(branch_list, many=True)
+        queryset = Branch.objects.all()
+        branchs = []
 
-        return Response(serializer.data)
+        for branch in queryset:
+            branchs.append({"id": branch.id, 'branch_name': branch.branch_name, 'create_date': branch.create_date,
+                            "create_by": branch.create_by.username, 'update_by': branch.update_by.username, 'update_date': branch.update_date})
+
+        return Response(branchs)
 
     # Cập nhật thông tin nhãn hàng
     @api_view(['PUT'])
@@ -294,7 +301,6 @@ class BranchView():
         serializer = BranchSerializer(branch, data=request.data)
 
         if serializer.is_valid():
-            branch.update_date = datetime.datetime.now()
             serializer.save()
             return Response({"Message": "Success", "Data": serializer.data})
         else:
@@ -320,11 +326,9 @@ class TicketImportView():
     @api_view(['GET'])
     def ticket_list(request):
         queryset = Ticket_import.objects.select_related('supplier')
-
         tickets = []
         for ticket in queryset:
-            tickets.append({"code": ticket.code ,"supplier": ticket.supplier.supplier_name, "total_price": ticket.total_price, "create_date": ticket.create_date})
-
+            tickets.append({"id": ticket.id, "code": ticket.code ,"supplier": ticket.supplier.supplier_name, "total_price": ticket.total_price, "create_date": ticket.create_date})
         return Response(tickets)
 
     # Xóa thông tin đơn nhập hàng
@@ -434,11 +438,18 @@ class ProductView():
     # Lấy danh sách sản phẩm
     @api_view(['GET'])
     def list_product(request):
-        product_list = Product.objects.all()
-        serializer = ProductSerializer(product_list, many=True)
+        queryset = Product.objects.select_related("branch", "category")
+        print(queryset)
+        products = []
 
-        return Response(serializer.data)
-    
+        for prd in queryset:
+            products.append({"id": prd.id, "branch": prd.branch.branch_name, "category": prd.category.category_name, "product_name": prd.product_name,
+                            "quantity": prd.quantity, "price": prd.price, "sale": prd.sale, "rate": prd.rate, "description": prd.description,
+                            "content": prd.content, "status": prd.status, "create_date": prd.create_date, "create_by": prd.create_by.username,
+                            "update_date": prd.update_date, "update_by": prd.update_by.username})
+        
+        return Response(products)
+
     # Lấy danh sách sản phẩm trong trang home
     @api_view(['GET'])
     def list_product_home(request):
@@ -462,7 +473,6 @@ class ProductView():
         serializer = ProductSerializer(product, data=request.data)
 
         if serializer.is_valid():
-            product.update_date = datetime.datetime.now()
             serializer.save()
             return Response({"Message": "success", "Data": serializer.data})
 
@@ -600,10 +610,14 @@ class OrderView():
     # Lấy danh sách các hóa đơn
     @api_view(['GET'])
     def list_orders(request):
-        list_order = Orders.objects.all()
-        serializer = OrdersSerializer(list_order, many=True)
+        queryset = Orders.objects.all()
+        orders = []
 
-        return Response(serializer.data)
+        for ord in queryset:
+            orders.append({"id": ord.id, 'order_code': ord.order_code, 'customer_name': ord.customer_name.username,
+                        'phone': ord.phone, 'email': ord.email, 'address': ord.address, 'total_price': ord.total_price, 'status': ord.status, 'create_date': ord.create_date})
+
+        return Response(orders)
 
     # Tìm kiếm thông tin hóa đơn
     @api_view(['GET'])
