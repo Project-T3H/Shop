@@ -328,7 +328,7 @@ class TicketImportView():
         queryset = Ticket_import.objects.select_related('supplier')
         tickets = []
         for ticket in queryset:
-            tickets.append({"id": ticket.id, "code": ticket.code ,"supplier": ticket.supplier.supplier_name, "total_price": ticket.total_price, "create_date": ticket.create_date})
+            tickets.append({"id": ticket.id, "code": ticket.code ,"supplier": ticket.supplier.supplier_name, "total_price": ticket.total_price, "create_date": ticket.create_date, "supplier_id": ticket.supplier.id})
         return Response(tickets)
 
     # Xóa thông tin đơn nhập hàng
@@ -409,6 +409,16 @@ class ImportDetailView():
             return Response({"Message": "success"})
         except Exception as e:
             return Response({"Message": "error", "Error": str(e)})
+        
+    @api_view(['GET'])
+    def ticketdetail_by_ticket_id(request, pk):
+        queryset = Ticket_Import_Detail.objects.filter(ticket_import = pk).select_related('product')
+        orderdt = []
+
+        for odt in queryset:
+            orderdt.append({"quantity": odt.quantity,  "product_name": odt.product.product_name, "product_id": odt.product.id, 'ticket_import_id': odt.ticket_import.pk})
+
+        return Response(orderdt)
 # ===============================================================================
 
 
@@ -508,16 +518,15 @@ class ProductView():
     def filter_product(request):
         PAGE_SIZE = 5
         params = request.GET
-        start = int(params.get('start', 0))
-        length = int(params.get('length', PAGE_SIZE))
         branch = params.get('branch_id', '').strip()
-        color = params.get('color', '')
-        size = params.get('size', '')
+        category = params.get('category_id', '')
         
         branch = branch.split(',') if branch else []
+        category = category.split(',') if category else []
         
-        product_list = Product.objects.filter(branch__in=branch, color__in=color, size__in=size)
-        items = product_list[start:start+length]
+        product_list = Product.objects.filter(category__in=category) | Product.objects.filter(branch__in =branch)
+
+        items = product_list
         serializer = ProductSerializer(items, many=True)
         
         return Response({

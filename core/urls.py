@@ -54,6 +54,7 @@ urlpatterns = [
     path("ticketdetail/<pk>", ImportDetailView.ticketdetail_by_id),
     path("update-ticketdetail/<pk>", ImportDetailView.update_ticketdetail),
     path("delete-ticketdetail/<pk>", ImportDetailView.delete_ticketdetail),
+    path("ticketdetailbyticketid/<pk>", ImportDetailView.ticketdetail_by_ticket_id),
     # ================================================
 
     # ============= URL PRODUCT ======================
