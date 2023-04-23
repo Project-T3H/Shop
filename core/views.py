@@ -23,6 +23,10 @@ class UserView():
         serializer = UserSerializer(data=request.data)
         if serializer.is_valid(raise_exception=True):
             serializer.save()
+            serializerUserRole = UserRoleSerializer(data={'role': 6, 'user': serializer.data['id']})
+            if serializerUserRole.is_valid():
+                serializerUserRole.save()
+                return Response(serializer.data)
             return Response(serializer.data)
         else:
             return Response(serializer.errors)
@@ -99,7 +103,7 @@ class UserView():
     @api_view(['GET'])
     def list_user_manage(request):
         list_manage = User.objects.raw("SELECT u.* FROM core_user u JOIN core_user_role ur ON u.id = ur.user_id" +
-                                        " JOIN core_role r ON ur.role_id = r.id WHERE r.role_name = 'ADMIN'")
+                                        " JOIN core_role r ON ur.role_id = r.id WHERE (r.role_name = 'ADMIN' OR r.role_name = 'MANAGER' OR r.role_name = 'MANAGER_ORDER' OR r.role_name = 'MANAGER_WAREHOUSE' OR r.role_name = 'MANAGER_USER')")
         
         serializer = UserSerializer(list_manage, many=True)
         return Response(serializer.data)
@@ -143,7 +147,10 @@ class UserView():
         serializer = UserSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
-            return Response(serializer.data)
+            serializerUserRole = UserRoleSerializer(data={'role': request.data['role'] , 'user': serializer.data['id']})
+            if serializerUserRole.is_valid():
+                serializerUserRole.save()
+                return Response(serializer.data)
         
         else:
             return Response(serializer.errors, status=404)
